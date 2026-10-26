@@ -1,0 +1,17 @@
+<!doctype html><html lang="es"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Carrito · JS</title>
+<body style="font-family:system-ui;max-width:850px;margin:40px auto;padding:20px">
+<h1>Carrito sin Angular ni shell</h1>
+<h2>1. La pieza compartida: &lt;tienda-resumen-carrito&gt;</h2>
+<p>Este botón hace lo mismo que Compras: lanza el aviso <code>tienda:agregar</code>.</p>
+<button id="simular">Simular aviso de Compras (Polo)</button>
+<tienda-resumen-carrito></tienda-resumen-carrito>
+<h2>2. La página completa: &lt;tienda-carrito&gt;</h2>
+<p>Recarga para ver lo que agregaste arriba (llega por la API).</p>
+<tienda-carrito></tienda-carrito>
+<script type="module" src="./src/resumen.js"></script>
+<script type="module" src="./src/widget.js"></script>
+<script>
+document.getElementById('simular').onclick = () =>
+  window.dispatchEvent(new CustomEvent('tienda:agregar', { detail: { id: 1, nombre: 'Polo', precio: 35 } }));
+</script>
+</body></html>

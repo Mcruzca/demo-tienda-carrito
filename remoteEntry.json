@@ -1,0 +1,8 @@
+{
+  "name": "carrito",
+  "shared": [],
+  "exposes": [
+    { "key": "./Widget", "outFileName": "src/widget.js" },
+    { "key": "./Resumen", "outFileName": "src/resumen.js" }
+  ]
+}
