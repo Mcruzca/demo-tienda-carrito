@@ -1,6 +1,7 @@
 // PIEZA COMPARTIDA del módulo carrito: <tienda-resumen-carrito>.
 // Es del carrito (él es el dueño), pero se muestra dentro de otros módulos: Compras y Pedidos.
 // JavaScript del navegador: sin imports de Angular.
+import { estado, calcularTotales } from './estado.js';
 const API = '/api'; // API local de demo (repo api-java).
 
 // CONTRATO entre módulos (eventos en window):
@@ -20,6 +21,8 @@ class ResumenCarrito extends HTMLElement {
      <p id="estado" aria-live="polite"></p></aside>`;
    // Comunicación entre módulos: escucha el aviso de compras y guarda en la API.
    window.addEventListener('tienda:agregar', e => this.pedir('POST', e.detail), { signal: this.control.signal });
+   // Si cambia una variable del shell (p. ej. el descuento), se recalcula el total.
+   window.addEventListener('tienda:estado-cambio', () => this.dibujar(this.items ?? [], false), { signal: this.control.signal });
    this.pedir('GET');
  }
  disconnectedCallback() { this.control?.abort(); }
@@ -38,16 +41,18 @@ class ResumenCarrito extends HTMLElement {
      this.shadowRoot.querySelector('#estado').textContent = 'API apagada: el carrito no se pudo guardar.';
    }
  }
- dibujar(items) {
+ dibujar(items, avisar = true) {
+   this.items = items;
    this.shadowRoot.querySelector('#lista').replaceChildren(...items.map(item => {
      const li = document.createElement('li');
      li.textContent = item.cantidad + ' × ' + item.nombre;
      return li;
    }));
    const cantidad = items.reduce((suma, item) => suma + item.cantidad, 0);
-   const total = items.reduce((suma, item) => suma + item.precio * item.cantidad, 0);
-   this.shadowRoot.querySelector('#total').textContent = cantidad ? cantidad + (cantidad === 1 ? ' producto' : ' productos') + ' · S/ ' + total.toFixed(2) : 'Vacío';
-   window.dispatchEvent(new CustomEvent('tienda:carrito-cambio', { detail: { cantidad } }));
+   const { total } = calcularTotales(items);
+   const extras = ' (desc. ' + estado().get('descuento') + ' %, IGV ' + estado().get('igv') + ' %)';
+   this.shadowRoot.querySelector('#total').textContent = cantidad ? cantidad + (cantidad === 1 ? ' producto' : ' productos') + ' · S/ ' + total.toFixed(2) + extras : 'Vacío';
+   if (avisar) window.dispatchEvent(new CustomEvent('tienda:carrito-cambio', { detail: { cantidad } }));
  }
 }
 if (!customElements.get('tienda-resumen-carrito')) customElements.define('tienda-resumen-carrito', ResumenCarrito);
