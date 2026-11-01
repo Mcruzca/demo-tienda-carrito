@@ -20,7 +20,7 @@ class Carrito extends HTMLElement {
      <button id="finalizar">Finalizar compra</button><button id="vaciar">Vaciar carrito</button><button id="quitar-cupon">Quitar cupón</button>
      <p id="estado" aria-live="polite"></p></section>`;
    const opciones = { signal: this.control.signal };
-   this.shadowRoot.querySelector('#finalizar').addEventListener('click', () => this.pedir('POST', '/pedidos', 'Compra registrada. Mírala en Pedidos.'), opciones);
+   this.shadowRoot.querySelector('#finalizar').addEventListener('click', () => this.finalizar(), opciones);
    this.shadowRoot.querySelector('#vaciar').addEventListener('click', () => this.pedir('DELETE', '/carrito'), opciones);
    // Este módulo JS también modifica una variable del shell.
    this.shadowRoot.querySelector('#quitar-cupon').addEventListener('click', () => estado().set('descuento', 0), opciones);
@@ -37,9 +37,21 @@ class Carrito extends HTMLElement {
      if (!respuesta.ok) throw new Error((await respuesta.json()).error);
      this.dibujar(await respuesta.json());
      this.mostrarEstado(exito);
+     return true;
    } catch (error) {
      this.mostrarEstado(error instanceof TypeError ? 'API apagada: no se pudo conectar.' : error.message);
+     return false;
    }
+ }
+ // La API guarda el pedido solo con el subtotal. El total con descuento e IGV
+ // se calcula aquí y se le entrega al shell, que lo guarda (localStorage).
+ async finalizar() {
+   const { total } = calcularTotales(this.items ?? []);
+   if (!await this.pedir('POST', '/pedidos', 'Compra registrada. Mírala en Pedidos.')) return;
+   try {
+     const [ultimo] = await (await fetch(API + '/pedidos')).json(); // El más reciente va primero.
+     estado().guardarTotalPedido?.(ultimo.id, total); // Sin shell no hay dónde guardarlo.
+   } catch {}
  }
  dibujar(items) {
    this.items = items;
