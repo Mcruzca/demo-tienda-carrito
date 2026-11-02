@@ -50,7 +50,7 @@ class Carrito extends HTMLElement {
    if (!await this.pedir('POST', '/pedidos', 'Compra registrada. Mírala en Pedidos.')) return;
    try {
      const [ultimo] = await (await fetch(API + '/pedidos')).json(); // El más reciente va primero.
-     estado().guardarTotalPedido?.(ultimo.id, total); // Sin shell no hay dónde guardarlo.
+     estado().guardarTotalPedido(ultimo.id, total); // Se lo ENTREGA al shell.
    } catch {}
  }
  dibujar(items) {

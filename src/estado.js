@@ -1,10 +1,6 @@
 // Variables del shell (window.tiendaEstado): igv es solo lectura, descuento se puede cambiar.
-// Si el carrito se abre sin shell, usa valores por defecto para que siga funcionando.
-const porDefecto = { igv: 18, descuento: 0 };
-export const estado = () => window.tiendaEstado ?? {
- get: clave => porDefecto[clave],
- set: (clave, valor) => { porDefecto[clave] = valor; window.dispatchEvent(new CustomEvent('tienda:estado-cambio', { detail: { clave, valor } })); }
-};
+// El carrito siempre corre dentro del shell: él es quien las comparte.
+export const estado = () => window.tiendaEstado;
 
 // Subtotal → menos descuento → más IGV.
 export function calcularTotales(items) {
